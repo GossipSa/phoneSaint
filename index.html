@@ -102,15 +102,99 @@ function openMail(){const body=appPage('Почта');body.append(el('p','muted',
 function updateMailBadge(){const tile=document.querySelector('[data-app="mail"] .tile');if(!tile)return;tile.querySelector('.app-badge')?.remove();const n=schoolMail.filter(m=>!mailRead[m.id]).length;if(n)tile.append(el('span','app-badge',String(n)))}
 
 const channelData=[
-{id:'gossip',name:'Gossip Saintfour',color:'#79539a',posts:['С возвращением, Сентфор. Надеюсь, за лето вы успели накопить достаточно секретов. Я соскучилась. 💋','Последний учебный год. Кто-то мечтает о выпускном, кто-то — чтобы до него не всплыли старые переписки. Целую, ваша Сплетница.']},
-{id:'school',name:'Saintfour High School',color:'#556177',posts:['Добро пожаловать в новый учебный год! Следите за объявлениями администрации.','Изменения расписания будут публиковаться здесь.']},
-{id:'basket',name:'Saintfour Basketball',color:'#56966b',posts:['Команда возвращается к тренировкам после летнего перерыва.','Информация о ближайших играх появится после утверждения расписания.']},
-{id:'poppy',name:'Penelope’s diary',color:'#9365bd',posts:['Первый день школы пережили. Осталось пережить весь год.','Если кто-то опять спросит, почему я не хожу на каждый баскетбольный матч, я просто перестану отвечать.']}
+  {
+    "id": "gossip",
+    "name": "Gossip Saintfour",
+    "color": "#79539a",
+    "posts": [
+      {
+        "when": "Воскресенье · 20:40",
+        "text": "С возвращением, Сентфор. Надеюсь, за лето вы успели накопить достаточно секретов. Я соскучилась. 💋"
+      },
+      {
+        "when": "Понедельник · 11:35",
+        "text": "В школьном канале открыли запись в кружки. Книжный клуб, фотоклуб, научная лаборатория… Интересно, сколько человек запишется на последний исключительно ради Боуи?"
+      },
+      {
+        "when": "Понедельник · 13:20",
+        "text": "Наши баскетболисты выиграли 68:61. Поздравляю капитана Брукса. А Эбигейл, кажется, уже нашла ещё одну причину проводить вечера в спортзале. Набор в чирлидеры как нельзя кстати. Это всего лишь предположение, дорогие."
+      },
+      {
+        "when": "Понедельник · 15:10",
+        "text": "Пенелопа советует не покупать подписчиков и пить кофе у центральной площади. Прекрасные советы. Особенно от человека, который сегодня полперемены выбирал, с кем выгоднее сфотографироваться. Целую, ваша Сплетница. 💋"
+      }
+    ]
+  },
+  {
+    "id": "school",
+    "name": "Saintfour High School",
+    "color": "#556177",
+    "posts": [
+      {
+        "when": "Воскресенье · 17:00",
+        "text": "Добро пожаловать в новый учебный год!\nВход в школу с 07:45. Начало занятий в 08:15. Просим не опаздывать и следить за объявлениями учебной части."
+      },
+      {
+        "when": "Воскресенье · 17:15",
+        "text": "ЗВОНКИ\n1 урок — 08:15–09:00\n2 урок — 09:10–09:55\n3 урок — 10:05–10:50\nБольшая перемена — 10:50–11:20\n4 урок — 11:20–12:05\n5 урок — 12:15–13:00\n6 урок — 13:10–13:55\n7 урок — 14:05–14:50 (при наличии)"
+      },
+      {
+        "when": "Воскресенье · 17:30",
+        "text": "РАСПИСАНИЕ ВЫПУСКНОГО КЛАССА\nПн: английский, математика, история, химия, литература, физкультура.\nВт: математика, биология, английский, обществознание, физика, информатика.\nСр: история, химия, математика, литература, искусство, физкультура.\nЧт: английский, физика, биология, математика, история, информатика.\nПт: литература, обществознание, химия, английский, физкультура, классный час.\nОб изменениях сообщим отдельно."
+      },
+      {
+        "when": "Понедельник · 10:55",
+        "text": "НАБОР В ШКОЛЬНЫЕ КЛУБЫ\nПн, 15:30 — фотоклуб (каб. 204).\nВт, 15:15 — научный клуб (лаборатория, каб. 108).\nСр, 15:30 — театральный кружок (актовый зал).\nЧт, 15:15 — книжный клуб (библиотека).\nПт, 15:15 — школьная газета (каб. 206).\nЗапись у руководителей клубов. Участие добровольное."
+      }
+    ]
+  },
+  {
+    "id": "basket",
+    "name": "Saintfour Basketball",
+    "color": "#56966b",
+    "posts": [
+      {
+        "when": "Суббота · 18:45",
+        "text": "ПЕРВАЯ ПОБЕДА СЕЗОНА 🏀\nSaintfour — Westbridge: 68:61.\nТоварищеский предсезонный матч. Руди Брукс — 19 очков. Спасибо всем, кто пришёл поддержать команду!"
+      },
+      {
+        "when": "Воскресенье · 19:00",
+        "text": "РАСПИСАНИЕ ТРЕНИРОВОК\nПн, Ср, Пт — 15:30–17:30, школьный спортзал.\nПросьба к игрокам приходить за 10 минут до начала. Следующий домашний товарищеский матч — в пятницу следующей недели, 18:00."
+      },
+      {
+        "when": "Понедельник · 12:40",
+        "text": "ОТКРЫТЫЙ НАБОР\nВо вторник в 16:00 — просмотр новых игроков в баскетбольную команду.\nВ четверг в 15:30 — набор в команду чирлидеров, малый спортзал. Опыт приветствуется, но не обязателен. Спортивная форма обязательна."
+      }
+    ]
+  },
+  {
+    "id": "poppy",
+    "name": "Penelope’s diary",
+    "color": "#9365bd",
+    "posts": [
+      {
+        "when": "Воскресенье · 16:10",
+        "text": "ШКОЛЬНАЯ КОСМЕТИЧКА\nЕсли вы тоже не собираетесь вставать на час раньше ради макияжа: лёгкий тон или консилер, кремовые румяна, гель для бровей, тушь и блеск для губ. SPF утром. Всё. Не надо тащить в школу половину магазина."
+      },
+      {
+        "when": "Воскресенье · 21:05",
+        "text": "КАК ВЕСТИ БЛОГ И НЕ ВЫГЛЯДЕТЬ СТРАННО\nПротрите камеру, найдите нормальный свет и перестаньте выкладывать пятнадцать одинаковых селфи. Лучше одна хорошая фотография, чем десять посредственных. И ради бога, не покупайте подписчиков. Это заметно."
+      },
+      {
+        "when": "Понедельник · 12:10",
+        "text": "КУДА СХОДИТЬ В СЕНТФОРЕ\nКофейня у центральной площади — за кофе и нормальными фотографиями у окна. Набережная — ближе к закату. Книжный магазин на главной улице — если хочется побыть одной. Старый Сентфор в этот список не входит. Я всё-таки ценю свою обувь."
+      },
+      {
+        "when": "Понедельник · 14:55",
+        "text": "Мне уже переслали объявление о наборе в чирлидеры. Нет, я не записываюсь. Если вам нравится баскетбол — прекрасно. Если вам нравится баскетболист — это вообще другая история.))"
+      }
+    ]
+  }
 ];
 const worldUI=JSON.parse(localStorage.getItem('phoneSaint.worldUI')||'{}');worldUI.channels??={};worldUI.comments??={};worldUI.achievements??={};
 function saveWorld(){localStorage.setItem('phoneSaint.worldUI',JSON.stringify(worldUI))}
-function renderChannels(body){for(const c of channelData){const row=el('button','chat-row'),info=el('div','chat-info');info.append(el('strong','',c.name),el('small','',c.posts.at(-1)));row.append(avatar([c.id,c.name,c.color]),info);row.onclick=()=>openChannel(c);body.append(row)}}
-function openChannel(c){const body=appPage(c.name,()=>openHush('channels'));body.append(action(worldUI.channels[c.id]?'Отписаться':'Подписаться',()=>{worldUI.channels[c.id]=!worldUI.channels[c.id];saveWorld();openChannel(c)},'insta-follow'));for(const [i,p] of c.posts.entries()){const card=el('article','channel-post');card.append(el('strong','',c.name),el('p','',p),el('small','muted',i?'Сегодня':'Вчера'));body.append(card)}if(c.id==='gossip'){const form=el('form','insta-edit'),input=el('textarea','insta-input'),status=el('p','muted');input.placeholder='Анонимная предложка';input.maxLength=1000;input.required=true;const submit=el('button','insta-follow','Отправить анонимно');submit.type='submit';form.append(input,submit,status);form.onsubmit=e=>{e.preventDefault();if(!input.value.trim())return;(worldUI.tips??=[]).push({text:input.value.trim(),at:Date.now()});saveWorld();input.value='';status.textContent='Сохранено в предложке. Публикация зависит от дальнейшего сюжета.'};body.append(form)}}
+function renderChannels(body){for(const c of channelData){const row=el('button','chat-row'),info=el('div','chat-info');info.append(el('strong','',c.name),el('small','',c.posts.at(-1).text));row.append(avatar([c.id,c.name,c.color]),info);row.onclick=()=>openChannel(c);body.append(row)}}
+function openChannel(c){const body=appPage(c.name,()=>openHush('channels'));body.append(action(worldUI.channels[c.id]?'Отписаться':'Подписаться',()=>{worldUI.channels[c.id]=!worldUI.channels[c.id];saveWorld();openChannel(c)},'insta-follow'));for(const p of c.posts){const card=el('article','channel-post');card.append(el('strong','',c.name),el('p','',p.text),el('small','muted',p.when));body.append(card)}if(c.id==='gossip'){const form=el('form','insta-edit'),input=el('textarea','insta-input'),status=el('p','muted');input.placeholder='Анонимная предложка';input.maxLength=1000;input.required=true;const submit=el('button','insta-follow','Отправить анонимно');submit.type='submit';form.append(input,submit,status);form.onsubmit=e=>{e.preventDefault();if(!input.value.trim())return;(worldUI.tips??=[]).push({text:input.value.trim(),at:Date.now()});saveWorld();input.value='';status.textContent='Сохранено в предложке. Публикация зависит от дальнейшего сюжета.'};body.append(form)}}
 const npcComments={school:[['nadine','Последний год 🥲']],poppy:[['olivia','Я уже устала))'],['abigail','Понимаю']],rudy:[['abigail','Удачи на тренировках!'],['nadine','Не проспи 😄']],alice:[['nadine','Красиво']],nadine:[['rudy','Как быстро время летит)']]};
 function postComments(id){return [...(npcComments[id]||[]).map(([name,text])=>({name,text})),...(worldUI.comments[id]||[])]}
 function openComments(p,back){const body=appPage('Комментарии',back||openInstagram);for(const c of postComments(p.id)){const row=el('div','channel-post');row.append(el('strong','',c.name),el('p','',c.text));body.append(row)}const form=el('form','insta-edit'),input=el('input','insta-input');input.placeholder='Добавить комментарий…';input.required=true;input.maxLength=300;const submit=el('button','insta-follow','Опубликовать');submit.type='submit';form.append(input,submit);form.onsubmit=e=>{e.preventDefault();if(!input.value.trim())return;(worldUI.comments[p.id]??=[]).push({name:myHandle(),text:input.value.trim()});saveWorld();openComments(p,back)};body.append(form)}
