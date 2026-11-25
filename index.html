@@ -23,7 +23,7 @@ const wallpapers=[['default','Сиреневые','radial-gradient(ellipse at 12
 function settingsPage(title){stopChannelReading();$('appTitle').textContent=title;const back=$('screen').querySelector('.back');back.textContent='‹ Настройки';back.onclick=openSettings;const body=$('appBody');body.replaceChildren();return body}
 function openWallpapers(){const body=settingsPage('Обои');const p=document.createElement('p');p.className='subheading';p.textContent='Выбери обои для своего телефона.';body.append(p);const grid=document.createElement('div');grid.className='wall-grid';wallpapers.forEach(([key,name,bg])=>{const b=document.createElement('button');b.className='wall-choice';const preview=document.createElement('div');preview.className='wall-preview';preview.style.background=bg;const clock=document.createElement('small');clock.textContent='9:41';preview.append(clock);if((prefs.wall||'default')===key){preview.classList.add('selected');const check=document.createElement('b');check.textContent='✓';preview.append(check)}const label=document.createElement('span');label.textContent=name;b.append(preview,label);b.onclick=()=>{prefs.wall=key;savePrefs();openWallpapers()};grid.append(b)});body.append(grid)}
 function openAchievements(){const body=settingsPage('Достижения'),list=achievementList();body.append(el('p','muted','Открыто: '+list.filter(a=>a[2]).length));for(const [name,desc,earned] of list){const row=el('div','achievement-row');row.append(el('span','achievement-icon',earned?'🏆':'🔒'));const info=el('div');info.append(el('strong','',name),el('p','muted',desc));row.append(info);body.append(row)}body.append(el('p','muted','Секретные достижения: неизвестно сколько.'))}
-const contacts=[['mom','Мама','#b27887'],['friends','без учителей','#795b9e'],['school','Saintfour High School','#556177'],['nadine','Надин','#ba9457'],['poppy','Поппи','#9365bd'],['dex','Декс','#467ab7'],['rudy','Руди','#56966b'],['howard','Натаниэль Говард','#947a69'],['darren','Даррен','#b09253']];
+const contacts=[['mom','Мама','#b27887'],['friends','без учителей','#795b9e'],['school','Saintfour High School','#556177'],['nadine','Надин','#ba9457'],['poppy','Поппи','#9365bd'],['dex','Декс','#467ab7'],['rudy','Руди','#56966b'],['howard','Натаниэль Говард','#947a69'],['darren','Даррен','#b09253'],['abigail','Эбигейл','#b27887'],['liv','Лив','#9b7fbc'],['unknown','Неизвестный номер','#555563']];
 const notes=JSON.parse(localStorage.getItem('phoneSaint.notes')||'[]'),hushMessages=JSON.parse(localStorage.getItem('phoneSaint.hush')||'{}');
 function storeNotes(){localStorage.setItem('phoneSaint.notes',JSON.stringify(notes))}
 function storeHush(){localStorage.setItem('phoneSaint.hush',JSON.stringify(hushMessages))}
@@ -92,11 +92,12 @@ const dayScenes=[
 [2400000,[['emma','кто понял что задали по английскому?'],['noah','прочитать текст вроде'],['darren','Текст и вопросы после него'],['mason','ну всё я спать'],['rudy','в 8 вечера? 😂'],['mason','морально']]]
 ];
 
-const dayNames=['','Новенькая','Свои','Планы на вечер','По собственной инициативе'], dayWeek=['','Понедельник','Вторник','Среда','Четверг'];
+const dayNames=['','Новенькая','Свои','Планы на вечер','По собственной инициативе','Трибуны','За старым мостом','Чужое прошлое','На виду','Архив','Не просто друзья','Закрытая территория','Скриншот','Господин Говард','Неизвестный номер'], dayWeek=['','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота','Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота','Воскресенье'];
 function currentDay(){return story.day||1}
 function sceneMinute(chat,background=false){
 const d=currentDay();if(d===1){if(chat==='school')return background? (story.gameMinute||940):940;if(chat==='mom')return 1020;if(chat==='nadine')return story.node==='pastWait'?1050:story.node==='inviteWait'?1110:960;return 940}
-if(background&&chat==='school')return 460;
+if(background&&chat==='school')return d===6||d===7||d===13||d===14?620:460;
+if(d>=5)return Math.max(gameNow(),dayNode()?.time??gameNow());
 return ({2:{morning:452,groupOffer:912,groupHello:920,groupPlans:928,rudyHello:1104,end:1180},3:{plans:838,meet:940,evening:1200,end:1236},4:{dexHello:858,dexMeet:865,activity:940,night:1210,end:1328}})[d]?.[story.dayNode]??(story.gameMinute||460)
 }
 function gameStamp(minute){const n=Math.max(0,Math.min(1439,Math.floor(minute)));return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0')}
@@ -142,7 +143,7 @@ function dayContact(n){return val(n.chat)}
 function launchNode(id,delay=1500){story.dayNode=id;story.dayChoiceReady=false;saveStory();if(id==='end'){story.dayChoiceReady=true;saveStory();return}const n=dayNode();if(!n)throw Error('Unknown day node '+id);enqueue(dayContact(n),val(n.intro),delay,'dayReady:'+id)}
 function dayNote(id,text){story.noteKeys??={};if(story.noteKeys[id])return;story.noteKeys[id]=true;notes.push({id:'story-'+id,text,source:'player',updated:Date.now(),created:Date.now()});storeNotes();saveStory()}
 function dayMail(id,from,subject,body){story.mail??=[];if(story.mail.some(m=>m.id===id))return;story.mail.push({id,from,subject,preview:body.slice(0,80),body,day:currentDay()});saveStory();updateMailBadge()}
-function dayPost(channel,id,time,text){story.posts??={};const arr=story.posts[channel]??=[];if(arr.some(p=>p.id===id))return;arr.push({id,when:'День 0'+currentDay()+' · '+time,day:currentDay(),text,reactions:{'❤️':17,'👀':9},comments:[]});saveStory()}
+function dayPost(channel,id,time,text){story.posts??={};const arr=story.posts[channel]??=[];if(arr.some(p=>p.id===id))return;arr.push({id,when:'День '+String(currentDay()).padStart(2,'0')+' · '+time,day:currentDay(),text,reactions:{'❤️':17,'👀':9},comments:[]});saveStory()}
 function dayFollower(id){story.followers??=[];if(!story.followers.includes(id)){story.followers.push(id);saveStory()}}
 function dayStartContent(){const d=currentDay();if(d===2){dayMail('d2-library','Школьная библиотека','Учебники и читательский билет','Новые учащиеся могут получить читательский билет в библиотеке. Возьмите школьный пропуск.');dayPost('school','d2-school','08:05','Напоминаем: запись в кружки продолжается, список будет дополняться.');dayPost('basket','d2-basket','08:20','Сегодня просмотр новых игроков в 16:00 🏀');dayPost('poppy','d2-poppy','12:00','второй день, а я уже забыла зарядку дома 😭');dayPost('cafe','d2-cafe','10:00','Сегодня в меню карамельный айс-латте ☕');dayPost('lost','d2-lost','12:30','кто нашёл белые наушники в столовой?');dayPost('city','d2-city','08:30','В субботу на площади состоится книжная ярмарка.');}
 if(d===3){dayMail('d3-school','Учебная часть','Внеклассная деятельность учащихся','Уважаемые учащиеся!\nВ сентябре проводится запись в кружки и спортивные секции. Выпускники могут принять участие в организации осенних мероприятий. Подробности в школьном канале.');dayNote('d3-school','школа\n\nузнать про кружки\nсделать английский\nзавтра набор в чирлидеры\nкупить тетрадь по химии');dayPost('school','d3-school','08:05','Начинаем подготовку осенней школьной ярмарки. Желающие помочь могут обратиться к классному руководителю.');dayPost('cafe','d3-cafe','12:00','Сегодня скидка 10% по школьному пропуску)');dayPost('poppy','d3-poppy','12:15','если будете в кофейне, попробуйте карамельный айс-латте. Вот это реально вкусно)');dayPost('lost','d3-lost','09:00','наушники нашли, спасибо всем!!');dayPost('city','d3-city','10:00','На выходных на площади будет живая музыка.');}
@@ -150,24 +151,241 @@ if(d===4){dayMail('d4-fair','Школьная администрация','Ин�
 function dayEndContent(){const d=currentDay();if(d===2){dayFollower('nadine');dayFollower('rudy');if((story.relations.poppy||0)>1)dayFollower('poppy');dayNote('d2-impressions',story.joinedFriends?'первые впечатления\n\nНадин очень приятная\nРуди постоянно смеётся\nПоппи пока не понимаю ахах\nДаррен вроде спокойный\nДекс странный':'второй день\n\nпока не хочу лезть в чужую компанию\nно Надин приятная)');dayPost('gossip','d2-gossip','19:40',story.joinedFriends?'Кажется, в одной небезызвестной компании пополнение 👀\nНадолго ли? Будем наблюдать, дорогие 💋':'Некоторые до сих пор ищут себе место в школьной столовой. Сентфор, будьте гостеприимнее))');}
 if(d===3){dayNote('d3-route',['кофейня\n\nПоппи в жизни не совсем такая как в переписке ахах\nкофейня реально хорошая','баскетбол\n\nсмотреть вживую оказалось прикольно)\nРуди на площадке совсем другой','библиотека\n\nс Дарреном легко разговаривать\nнадо бы ещё зайти','вечер дома\n\nиногда просто хочется тишины'][story.route3??3]);dayPost('basket','d3-basket','17:40','Тренировка закончилась, спасибо всем кто пришёл! 🏀');dayPost('gossip','d3-gossip','19:42',['У Пенелопы сегодня новая компания за любимым столиком у окна. Надолго ли? 💋','На тренировке Брукса замечено новое лицо. Эбигейл, ты готова к завтрашнему набору?))','Неужели библиотека стала популярным местом для встреч? Боуи, поделишься секретом? 💋','Завтра набор в чирлидеры. Особенно жду тех, кого совершенно случайно заинтересовал спорт))'][story.route3??3]);}
 if(d===4)dayNote('d4-night','четыре дня\n\nстранно но я уже почти не думаю о старой школе\nинтересно Лив вообще вспоминает обо мне?\nхотела посмотреть её профиль но передумала');}
-function beginLaterDay(){if(story.laterStarted===currentDay())return;story.laterStarted=currentDay();story.dayStarts??={};story.dayStarts[currentDay()]??=Date.now();story.dayChoiceReady=false;dayStartContent();enqueue('school',msg(morningScenes[currentDay()]),1000,null,true);launchNode(({2:'morning',3:'plans',4:'dexHello'})[currentDay()],currentDay()===2?12000:60000);saveStory()}
+function beginLaterDay(){if(story.laterStarted===currentDay())return;story.laterStarted=currentDay();story.dayStarts??={};story.dayStarts[currentDay()]??=Date.now();story.dayChoiceReady=false;dayStartContent();extraStart();enqueue('school',msg(morningScenes[currentDay()]),1000,null,true);launchNode(({2:'morning',3:'plans',4:'dexHello',...dayEntry})[currentDay()],currentDay()===2?12000:60000);saveStory()}
 function laterFinish(e){if(e.finish.startsWith('dayReady:')){const id=e.finish.slice(9);if(story.dayNode!==id)return;const n=dayNode();if(n.next)launchNode(n.next,12000);else story.dayChoiceReady=true;}else if(e.finish.startsWith('dayNext:')){const next=e.finish.slice(8);if(next==='night'){dayPost('city','d4-city','20:10','Администрация напоминает: посещение заброшенных зданий Старого Сентфора небезопасно. В связи с недавними обращениями территория будет дополнительно патрулироваться.');}launchNode(next,next==='end'?0:20000)}}
 function chooseLater(c,i){if(dayFrozen()||!story.dayChoiceReady)return;const n=dayNode();if(!n||dayContact(n)!==c[0])return;const o=val(n.opts)?.[i];if(!o)return;story.dayChoiceReady=false;story.history.push({day:currentDay(),chat:c[0],node:story.dayNode,index:i,text:o.text,at:Date.now()});sendHush(c[0],o.text);if(o.join!==undefined)story.joinedFriends=o.join;if(o.route!==undefined){story.route3=o.route;story.unlocked??=[];const id=['poppy','rudy','darren','mom'][o.route];if(!story.unlocked.includes(id))story.unlocked.push(id);if(story.joinedFriends)o.reply=msg([[['nadine','rudy','darren','nadine'][o.route],['ДААА пошли!!','О, реально придёшь?','Хорошо, встретимся у библиотеки','Хорошо, отдыхай ❤️'][o.route]]]);else o.reply=[['ДААА пошли!!','Я скажу Руди)',['Хорошо, напишу Даррену'][0],'Хорошо, отдыхай ❤️'][o.route]];}
 if(o.activity!==undefined){story.activity4=o.activity;if(o.activity===0){dayMail('d4-tryout','Спортивная секция','Итоги отбора','Спасибо за участие! Приглашаем на пробную тренировку. Окончательный состав будет объявлен позже.');story.cheerTrial=true}dayNote('d4-activity',['набор\n\nпопробовала себя в чирлидинге, жду следующую тренировку','набор\n\nпосмотрела как девочки выступают','погуляли с Надин)','книжный клуб\n\nнадо выбрать книгу к следующей встрече','вечер дома'][o.activity])}
 if(story.dayNode==='dexMeet'){dayNote('d4-dex','Хоук\n\nНадин могла бы предупредить что он такой ахах\nстранный тип');}
-const target=c[0]==='friends'?'nadine':c[0];story.relations[target]=(story.relations[target]||0)+(o.delta||0);saveStory();enqueue(c[0],o.reply||[],3000,'dayNext:'+o.next);openChat(c);pumpStory()}
+for(const [id,delta] of Object.entries(o.effects||{}))story.relations[id]=(story.relations[id]||0)+delta;for(const [id,v] of Object.entries(o.flags||{}))flag(id,v);const target=c[0]==='friends'?'nadine':c[0];story.relations[target]=(story.relations[target]||0)+(o.delta||0);saveStory();enqueue(c[0],o.reply||[],3000,'dayNext:'+o.next);openChat(c);pumpStory()}
+
+const rel=id=>story.relations[id]||0;
+const flag=(id,v)=>{story.flags??={};story.flags[id]=v};
+const has=id=>story.flags?.[id];
+const C=(text,reply,next,delta=0,effects={},f={})=>opt(text,reply,next,delta,{effects,flags:f});
+const node=(chat,time,intro,opts)=>({chat,time,intro,opts});
+const passive=(chat,time,intro,next)=>({chat,time,intro,next});
+const best=()=>['rudy','dex','darren'].sort((a,b)=>rel(b)-rel(a))[0];
+const groupChat=()=>story.joinedFriends?'friends':'nadine';
+const groupText=pairs=>story.joinedFriends?msg(pairs):pairs.filter(p=>p[0]==='nadine').map(p=>p[1]);
+const chosenRoute=()=>has('interest')||best();
+Object.assign(days,{
+5:{
+ opening:node('nadine',465,['ПЯТНИЦААА','Слушай, вечером матч у Руди','Ты придёшь?'],[
+ C('Да, хочу его поддержать)', ['Он обрадуется!!'],'match',1,{rudy:1},{match:true}),
+ C('Если ты идёшь, то я тоже', ['Конечно иду)'],'match',2,{}, {match:true}),
+ C('Не особо люблю матчи, но удачи ему', ['Ладно, передам)'],'after',0,{}, {match:false})]),
+ match:node('rudy',1050,['ты уже на трибунах?','если выиграем то это благодаря вам 😂'],[
+ C('Давай капитан, не подведи)', ['ЕСТЬ 🫡'],'after',2),
+ C('Надин тоже очень за тебя переживает', ['Правда?','ну всё теперь точно нельзя проигрывать 😂'],'after',1,{}, {rudyNadine:true}),
+ C('Главное не травмируйся', ['постараюсь!!'],'after',1)]),
+ after:node('abigail',1145,()=>has('match')?['Привет','Ты с Руди давно общаешься?','Просто интересно)']:['Привет','Надин дала мне твой контакт','Ты вроде тоже из нашего класса?'],[
+ C('Мы просто общаемся, а что?', ['Да ничего','Забей)'],'gossip',1),
+ C('Тебе он нравится?', ['А тебе какая разница?'],'gossip',-1,{}, {abigailConflict:true}),
+ C('Не думала, что должна перед тобой отчитываться', ['Понятно.'],'gossip',-2,{}, {abigailConflict:true})]),
+ gossip:node('poppy',1205,['Ты только не пугайся','Эбигейл опять слишком серьёзно воспринимает баскетбол','У неё с Бруксом великая история любви. В её голове)'],[
+ C('Не хочу обсуждать её за спиной', ['Как благородно)'],'end',0,{abigail:1}),
+ C('АХАХАХА ну теперь понятно', ['Вот и я о том же)'],'end',1,{}, {mockAbigail:true}),
+ C('Руди сам разберётся', ['Надеюсь, ему кто-нибудь это сообщит)'],'end',0)])
+},
+6:{
+ opening:node('nadine',615,['Доброе утро)','Мама попросила помочь дома, а я обещала Элис сходить на ярмарку','Хочешь потом встретиться?'],[
+ C('Конечно)', ['Тогда после обеда ❤️'],'fair',1),
+ C('Я сама там погуляю, увидимся если что', ['Хорошо)'],'fair',0),
+ C('Сегодня хочу отдохнуть', ['Окей, только не пропадай)'],'old',0)]),
+ fair:node('darren',870,['Привет! Ты на ярмарке?','Тут продают старые местные издания','Нашёл карту города, ещё до закрытия Старого Сентфора'],[
+ C('Покажешь? Мне интересно', ['Да, там есть странная вещь','Одна улица на новой карте вообще отсутствует'],'old',2,{}, {map:true}),
+ C('Почему его вообще закрыли?', ['Официально из-за аварийных зданий. Но карты начали менять намного раньше'],'old',1,{}, {map:true}),
+ C('Не особо увлекаюсь старьём)', ['Понял. Если что, я возле книжного стенда'],'old')]),
+ old:node('dex',1010,['слушай','если надумаешь шастать за старым мостом не ходи одна'],[
+ C('Почему? Что там?', ['не место для прогулок','поверь на слово'],'end',1),
+ C('А с тобой можно?', ['смотря зачем тебе туда'],'end',2,{}, {dexInvite:true}),
+ C('Я и не собиралась', ['ну и отлично'],'end'),
+ C('Ты всем указываешь куда ходить?', ['делай че хочешь','я предупредил'],'end',-1)])
+},
+7:{
+ opening:node('liv',640,['привет','не знаю правильно ли что пишу','как ты там?'],[
+ C('Зачем ты написала?', ['я скучаю','не хотела чтобы всё так закончилось'],'past',0),
+ C('Нормально. У меня новая школа и друзья', ['рада за тебя','слушай я правда хотела поговорить'],'past',1),
+ C('Не хочу возвращаться к этому', ['ладно','прости что побеспокоила'],'support',0,{}, {livBoundary:true})]),
+ past:node('liv',655,['я знаю что облажалась','мне стыдно за то что я тогда рассказала','может когда-нибудь нормально поговорим?'],[
+ C('Может быть. Но мне нужно время', ['понимаю','спасибо что ответила'],'support',1,{}, {livOpen:true}),
+ C('Я не готова снова тебе доверять', ['да','я понимаю'],'support',0,{}, {livBoundary:true}),
+ C('Тогда не рассказывай больше ничего обо мне', ['обещаю'],'support',0,{}, {livOpen:true})]),
+ support:node('nadine',970,['Ты сегодня какая-то тихая','Всё нормально?'],[
+ C('Бывшая подруга написала. Неприятно вспомнить всё это', ['Ой блин((,' ,'Если хочешь можешь рассказать. Только тебе решать'],'end',2,{}, {nadineTrust:true}),
+ C('Просто скучаю по старому дому', ['Понимаю(','Если что я рядом ❤️'],'end',1),
+ C('Всё хорошо, не переживай)', ['Ладно)'],'end')])
+},
+8:{
+ opening:node('poppy',920,['У меня вопрос','Ты кому-нибудь рассказывала про свою старую школу?','Только не психуй, посмотри Сплетницу'],[
+ C('Что там опять?', ['Про тебя, очевидно','Кто-то решил раскопать твоё прошлое'],'reaction'),
+ C('Ты знаешь кто это слил?', ['Если бы знала, сказала бы','Наверное)'],'reaction'),
+ C('Не хочу даже открывать', ['Тогда лучше и не открывай'],'reaction')]),
+ reaction:node('nadine',940,['Ты в порядке?','Я не рассказывала никому, если что','Это вообще не их дело'],[
+ C('Я тебе верю', ['Спасибо ❤️','Если узнаю что-то скажу'],'response',2,{}, {trustNadine:true}),
+ C('Не знаю уже кому верить', ['Понимаю почему ты злишься','Но это правда не я'],'response',-1),
+ C('Помоги узнать кто это сделал', ['Попробую, только не делай глупостей пожалуйста'],'response',1)]),
+ response:node('school',960,msg([['olivia','ну и что вы устроили из обычного поста'],['emma','вообще не смешно'],['abigail','я ничего не писала если что'],['poppy','А тебя кто-то спрашивал?'],['rudy','народ хватит обсуждать человека за спиной'],['nadine','Серьёзно.']]),[
+ C('Моя личная жизнь вас не касается',msg([['rudy','вот именно'],['emma','согласна']]),'end',0,{rudy:1,nadine:1},{rumorResponse:'boundary'}),
+ C('Ещё какие вопросы? Могу сразу автобиографию прислать',msg([['poppy','АХАХАХА'],['olivia','ладно ладно']]),'end',0,{poppy:2},{rumorResponse:'joke'}),
+ C('Эбигейл, это ты сделала?',msg([['abigail','Ты больная?'],['nadine','Давайте не будем обвинять без доказательств']]),'end',0,{abigail:-3,nadine:-1},{rumorResponse:'accuse'}),
+ C('Не собираюсь это обсуждать',msg([['darren','Думаю, на этом стоит закончить разговор']]),'end',0,{}, {rumorResponse:'quiet'})])
+},
+9:{
+ opening:node('darren',930,['Привет','Я нашёл ещё кое-что по той карте','В архивном каталоге есть несколько материалов с пометкой WARLOCK','Но сами файлы недоступны'],[
+ C('Что такое WARLOCK?', ['Компания, которая финансировала исследования в городе','Мой отец там работает'],'trust',1),
+ C('Звучит так, будто от нас что-то скрывают', ['Не обязательно. Но странно, что убрали даже старые номера страниц'],'trust',2),
+ C('Может это просто закрытые документы', ['Вполне возможно'],'trust')]),
+ trust:node('darren',950,['Можно просьбу?','Пока не рассказывай про это всем подряд','Не хочу подставлять отца'],[
+ C('Хорошо, останется между нами', ['Спасибо. Правда'],'choice',2,{}, {archiveSecret:true}),
+ C('Надин могу рассказать?', ['Лучше пока нет. Я сам скажу, когда разберусь'],'choice',0,{}, {archiveSecret:true}),
+ C('Я не обещаю держать это в секрете', ['Понял. Тогда я пока ничего больше не пришлю'],'choice',-2,{}, {archiveSecret:false})]),
+ choice:node('nadine',1110,['Слушай, мы завтра после уроков хотим встретиться','Ты с кем-нибудь уже договорилась?'],[
+ C('Хочу увидеть Руди', ['Хорошо) Скажу ему'],'end',0,{rudy:1},{interest:'rudy'}),
+ C('Может с Дексом', ['А, понятно)','Тогда сама с ним договорись'],'end',0,{dex:1,nadine:-1},{interest:'dex'}),
+ C('С Дарреном, если он свободен', ['Окей)'],'end',0,{darren:1},{interest:'darren'}),
+ C('Давай лучше вдвоём', ['ДАА ❤️'],'end',2,{}, {interest:'nadine'}),
+ C('Пока никаких планов', ['Хорошо)'],'end',0,{}, {interest:'none'})])
+},
+10:{
+ opening:node(()=>['rudy','dex','darren','nadine'].includes(chosenRoute())?chosenRoute():'nadine',940,()=>({rudy:['привет!!','пойдём после школы за кофе?','только мы вдвоём если ты не против)'],dex:['че делаешь после уроков','могу подвезти если надо'],darren:['Привет!','Я сегодня свободен после школы. Хочешь прогуляться?'],nadine:['Слушай, давай сегодня вдвоём погуляем?','Без остальных ахах']})[chosenRoute()]||['Пойдём погуляем?'],()=>[
+ C('Давай, я за)',({rudy:['класс!!'],dex:['ок жду у входа'],darren:['Отлично. Тогда у школы'],nadine:['УРАА']})[chosenRoute()]||['Супер)'],'personal',2,{}, {dateAccepted:true}),
+ C('Можно позвать ещё ребят?', ['Как хочешь.'],'personal',0,{}, {dateAccepted:false}),
+ C('Сегодня не получится, извини', ['Хорошо. В другой раз'],'evening',0,{}, {dateAccepted:false})]),
+ personal:node(()=>['rudy','dex','darren','nadine'].includes(chosenRoute())?chosenRoute():'nadine',1085,()=>({rudy:['спасибо за сегодня)','с тобой реально легко общаться'],dex:['ты нормально до дома дошла?','а то телефон у тебя чуть не сел'],darren:['Спасибо за прогулку','Редко получается спокойно с кем-то поговорить'],nadine:['Как же хорошо что мы познакомились)','Мне этого очень не хватало']})[chosenRoute()]||['Спасибо за сегодня)'],()=>[
+ C('Мне тоже было очень хорошо ❤️',['Рад(а), что так)'],'evening',2,{}, {closeMoment:!!has('dateAccepted')}),
+ C('Спасибо, было прикольно)', ['Ещё повторим)'],'evening',1),
+ C('Давай пока просто дружить', ['Хорошо, я понял(а)'],'evening',0,{}, {closeMoment:false})]),
+ evening:node('nadine',1200,()=>chosenRoute()==='dex'&&has('dateAccepted')?['Ты сегодня с Дексом была?','Не то чтобы я против','Просто странно что ты мне не сказала']:chosenRoute()==='rudy'&&has('dateAccepted')?['Руди сегодня куда-то пропал после школы ахах','Вы вместе были?']:['Как день?','Я сегодня вообще без сил'],[
+ C('Да, ничего особенного, просто пообщались', ['Хорошо)'],'end',1,{}, {honest:true}),
+ C('Не хочу каждый раз отчитываться', ['Я просто спросила','Ладно.'],'end',-2,{}, {honest:false}),
+ C('Если тебя что-то беспокоит, скажи прямо', ['Давай завтра поговорим','Не по переписке'],'end',1)])
+},
+11:{
+ opening:node('school',470,msg([['emma','у кого-нибудь тоже не открывается ссылка на экскурсию?'],['mason','какую еще экскурсию'],['darren','Ссылка была в школьной почте'],['poppy','Экскурсия в Старый Сентфор? Очень оригинально'],['rudy','там же закрыто всё'],['nadine','Это не туда, там в музей собираются']]),[
+ C('А можно просто не идти?',msg([['darren','Да, участие добровольное']]),'offer'),
+ C('Мне интересно, я бы сходила',msg([['nadine','Я тоже думаю записаться)']]),'offer',0,{nadine:1}),
+ C('WARLOCK тоже участвует?',msg([['darren','Компания выступает партнёром музея']]),'offer',0,{darren:1})]),
+ offer:node('nadine',940,['Помнишь объявление про патрули?','Декс сегодня сказал что видел там людей','И это явно не туристы','Мне интересно что происходит'],[
+ C('Давай лучше спросим Даррена', ['Да, наверное так безопаснее'],'clue',1,{}, {investigation:'darren'}),
+ C('Может спросим самого Декса?', ['Попробуем)'],'clue',0,{}, {investigation:'dex'}),
+ C('Не хочу лезть в это', ['Понимаю. Я тоже не хочу проблем'],'clue',0,{}, {investigation:'none'})]),
+ clue:node(()=>has('investigation')==='dex'?'dex':has('investigation')==='darren'?'darren':'nadine',1100,()=>has('investigation')==='dex'?['надин сказала ты спрашивала','там люди в форме без опознавательных знаков','больше ниче не знаю']:has('investigation')==='darren'?['В архиве есть запись о временном ограничении доступа','Дата документа не совпадает с датой закрытия района','Я пока не понимаю почему']:['Ладно, не будем об этом','Завтра обычный школьный день, и слава богу'],[
+ C('Спасибо, что рассказал(а)', ['Пока не делай поспешных выводов'],'end',1,{}, {clue:true}),
+ C('Это очень странно', ['Да уж'],'end',0,{}, {clue:true}),
+ C('Давай оставим это в покое', ['Хорошо'],'end')])
+},
+12:{
+ opening:node('poppy',920,['Слушай','У нас тут небольшая проблема','Сплетница получила скрин какой-то личной переписки','Я бы на твоём месте проверила кто у тебя в друзьях'],[
+ C('Ты видела оригинал?', ['Нет. И вообще я тебя предупреждаю, а не допрашиваю'],'pressure',1),
+ C('Это не твоих рук дело?', ['Серьёзно?','Могла бы и не предупреждать тогда'],'pressure',-2),
+ C('Я никому ничего не отправляла', ['Ну вот и думай откуда у неё это'],'pressure')]),
+ pressure:node('abigail',955,()=>has('abigailConflict')?['Ну что, нравится когда о тебе пишут?','Ты не одна такая особенная']:['Слушай','Мне не нравится что нас обеих постоянно обсуждают','Может хватит уже?'],[
+ C('Не я пишу эти посты. Давай прекратим', ['Ладно.'],'ally',1,{abigail:1},{abigailTruce:true}),
+ C('Если у тебя проблемы с Руди, решай их с ним', ['Да пошла ты.'],'ally',-2,{}, {abigailTruce:false}),
+ C('Хочешь нормально поговорить без остальных?', ['Может потом.'],'ally',2,{}, {abigailTruce:true})]),
+ ally:node(()=>chosenRoute()==='none'?'nadine':(['dex','rudy','darren','nadine'].includes(chosenRoute())?chosenRoute():'nadine'),1100,()=>({dex:['видел пост','че за хуйня'],rudy:['Слушай, ты не обращай внимания на этот бред','Если хочешь поговорить я на связи'],darren:['Я видел публикацию.','По обрывку переписки нельзя делать выводы. Ты в порядке?'],nadine:['Я видела пост','Это вообще пиздец','Ты как?']})[chosenRoute()]||['Ты как?'],[
+ C('Спасибо, что написал(а)', ['Если что, я на связи'],'end',2,{}, {supportAccepted:true}),
+ C('Хочу сама с этим справиться', ['Хорошо'],'end'),
+ C('Мне правда неприятно, можно поговорить?', ['Конечно. Расскажи'],'end',2,{}, {supportAccepted:true})])
+},
+13:{
+ opening:node('nadine',650,['Доброе утро','Ты сегодня в городе будешь?','Мне нужно забрать кое-что у школы','Потом можем встретиться'],[
+ C('Давай, я свободна', ['Отлично)'],'incident',1),
+ C('Могу ближе к вечеру', ['Хорошо, напишу'],'incident'),
+ C('Сегодня не планировала выходить', ['Ладно)'],'incident')]),
+ incident:node('nadine',1000,['Блин','Я сейчас видела Говарда у школы','Он спрашивал про Старый Сентфор','И почему-то про тебя тоже'],[
+ C('Кто такой Говард?', ['Натаниэль Говард. WARLOCK','Он тут типа очень важный человек'],'contact'),
+ C('Что конкретно он спрашивал?', ['Знаешь ли ты что-нибудь про старый район','И с кем общаешься'],'contact',1),
+ C('Ты ему что сказала?', ['Что ты новенькая и всё','Я не стала рассказывать лишнего'],'contact',1)]),
+ contact:node('howard',1080,['Добрый вечер. Натаниэль Говард.','Насколько мне известно, Вы недавно переехали в Сентфор.','У меня есть несколько вопросов относительно Вашего знакомства с городом.'],[
+ C('Добрый вечер. Откуда у Вас мой номер?',['Ваши контактные данные есть у администрации школы.','Не вижу причин для беспокойства.'],'howardAsk',1),
+ C('Каких именно вопросов?',['Вы интересовались территорией Старого Сентфора?'],'howardAsk',1),
+ C('Я не обязана отвечать на Ваши вопросы',['Разумеется.','Тем не менее, советую внимательно относиться к тому, что Вы выбираете не обсуждать.'],'howardAsk',2,{}, {howardDefiant:true})]),
+ howardAsk:node('howard',1090,['Посещали ли Вы закрытую часть города или обсуждали её с кем-либо из учащихся?'],[
+ C('Нет. Только видела объявление городского канала',['Понятно. Благодарю за ответ.'],'end',0,{}, {howardInfo:'none'}),
+ C('Слышала разговоры, но не знаю ничего конкретного',['В таком случае не советую распространять непроверенную информацию.'],'end',1,{}, {howardInfo:'vague'}),
+ C('Почему Вас это интересует?',['Потому что некоторые вопросы лучше задавать до того, как произойдут неприятные события.'],'end',2,{}, {howardInfo:'challenge'}),
+ C('Могу рассказать про архивные документы', ['Любопытно.','Я хотел бы обсудить это лично.'],'end',2,{darren:-3},{howardInfo:'archive',betrayal:true})])
+},
+14:{
+ opening:node('nadine',660,()=>has('betrayal')?['Ты общалась с Говардом?','Даррену сегодня звонил отец','Что ты ему сказала?']:['Ты вчера общалась с Говардом?','Мне не нравится что он спрашивает про всех','Ты ему ничего не рассказывала?'],[
+ C('Нет, ничего важного', ['Ладно. Надеюсь всё нормально'],'decision',has('betrayal')?-2:1,{}, {lied:!!has('betrayal')}),
+ C('Он спрашивал про старый район. Я рассказала, как было', ['Спасибо что сказала','Давай потом поговорим'],'decision',has('betrayal')?-1:2,{}, {honestHoward:true}),
+ C('Я сама решу что ему говорить', ['Ладно.','Только не говори потом что я не предупреждала.'],'decision',-2)]),
+ decision:node('nadine',935,['Мы хотим вечером встретиться и всё обсудить','Мне кажется лучше не держать это друг от друга'],[
+ C('Давай, расскажем всё друг другу', ['Хорошо. Только без истерик пожалуйста'],'friendEnd',2,{}, {chapterChoice:'friends'}),
+ C('Я хочу поговорить с Дарреном отдельно', ['Хорошо. Скажи ему сама'],'darrenEnd',0,{darren:1},{chapterChoice:'darren'}),
+ C('Я хочу сама выяснить у Говарда, что происходит', ['Ты серьёзно?','Ладно. Это твой выбор.'],'howardEnd',-2,{howard:1},{chapterChoice:'howard'}),
+ C('Мне нужно время. Сегодня я останусь дома', ['Хорошо. Береги себя ❤️'],'homeEnd',0,{}, {chapterChoice:'home'})]),
+ friendEnd:node(()=>story.joinedFriends?'friends':'nadine',1100,()=>story.joinedFriends?msg([['nadine','Давайте спокойно, пожалуйста'],['darren','У меня пока больше вопросов, чем ответов'],['rudy','главное чтобы никто не полез туда один'],['dex','наконец-то умная мысль'],['poppy','Неужели мы договорились хоть о чём-то']]):['Спасибо что не оставила меня одну с этим','Давай будем держаться вместе'],[
+ C('Договорились. Если что-то узнаем, говорим друг другу',groupText([['nadine','Да ❤️']]),'final',1,{nadine:1}),
+ C('Мне главное чтобы никто из нас не пострадал',groupText([['nadine','Мне тоже']]),'final',1)]),
+ darrenEnd:node('darren',1100,()=>has('betrayal')?['Мне звонил отец.','Я просил не рассказывать о документах.','Почему ты это сделала?']:['Я проверил даты.','Один документ относится к периоду, когда мама ещё работала в WARLOCK.','Мне нужно время, чтобы разобраться.'],[
+ C('Прости. Я хочу всё исправить', ['Мне нужно подумать.'],'final',has('betrayal')?1:0),
+ C('Не буду торопить тебя. Если нужна помощь, скажи',['Спасибо.'],'final',2),
+ C('Я хочу знать правду, даже если она неприятная',['Я тоже. Но не любой ценой.'],'final',1)]),
+ howardEnd:node('howard',1100,['Вы решили продолжить наш разговор?','Предупреждаю: любопытство не всегда является достоинством.'],[
+ C('Я не боюсь Ваших предупреждений',['Это я уже заметил.','Хорошего вечера.'],'final',2,{}, {howardPath:true}),
+ C('Хочу знать, что происходит в городе',['Не думаю, что Вы готовы к ответу.','Но Ваш интерес я запомню.'],'final',1,{}, {howardPath:true}),
+ C('Я передумала. Всего доброго',['Разумное решение.'],'final')]),
+ homeEnd:node('mom',1120,['Чай будешь?','Ты сегодня какая-то задумчивая'],[
+ C('Да, посидим вместе ❤️',['Иду ставить чайник)'],'final',2),
+ C('Всё нормально, просто устала',['Отдохни. Я рядом'],'final',1)]),
+ final:node('unknown',1270,['Не спрашивай, откуда у меня твой номер.','Если завтра услышишь, что Старый Сентфор снова закрыли, не верь официальной версии.'],[
+ C('Кто это?',['Ты ещё узнаешь.'],'end',0,{}, {unknownReply:true}),
+ C('Что произошло?',['Не по телефону.'],'end',0,{}, {unknownReply:true}),
+ C('Не пишите мне больше.',['Сообщение прочитано.'],'end',0,{}, {unknownReply:false})])
+}
+});
+Object.assign(morningScenes,{
+5:[['rudy','народ сегодня матч в 18:00'],['mason','билеты где'],['darren','Вход свободный'],['poppy','Брукс, только попробуй проиграть'],['rudy','спасибо за поддержку 😂']],
+6:[['emma','кто на ярмарку?'],['olivia','я после обеда'],['mason','там еда будет?'],['noah','у тебя всегда один вопрос']],
+7:[['mason','кто сделал литературу'],['emma','сегодня воскресенье отстань'],['darren','Я сделал.'],['poppy','Разумеется']],
+8:[['emma','доброе утро'],['noah','понедельник отменить можно?'],['rudy','если найдешь способ скажи']],
+9:[['mason','опять забыл форму'],['rudy','серьезно?'],['poppy','Стабильность — признак мастерства)']],
+10:[['emma','кто идет в библиотеку'],['darren','Я после уроков'],['noah','там тихо можно спать?'],['olivia','нет']],
+11:[['mason','у нас сегодня физика?'],['darren','Да'],['poppy','Удивительно, расписание не изменилось за ночь']],
+12:[['rudy','с пятницей народ'],['emma','НАКОНЕЦ ТО'],['noah','выжил']],
+13:[['emma','на ярмарке кто-нибудь был?'],['olivia','сегодня хочу спать'],['mason','поддерживаю']],
+14:[['noah','завтра опять школа'],['mason','не напоминай'],['emma','кто сделал английский']]
+});
+const extraNames=['','','','','','Трибуны','За старым мостом','Чужое прошлое','На виду','Архив','Не просто друзья','Закрытая территория','Скриншот','Господин Говард','Неизвестный номер'];
+const dayEntry={5:'opening',6:'opening',7:'opening',8:'opening',9:'opening',10:'opening',11:'opening',12:'opening',13:'opening',14:'opening'};
+const dailyContent={
+5:{mail:['Спортивная секция','Домашний матч','Сегодня в 18:00 состоится домашний матч. Вход свободный. Просим соблюдать порядок на трибунах.'],posts:[['basket','16:00','Сегодня Saintfour — Northwood. Начало в 18:00. Ждём болельщиков!'],['poppy','12:20','пятница, наконец-то. кто вечером на матч?']],note:'пятница\n\nне забыть поесть перед матчем\nкупить воды\nна выходных разобрать коробки'},
+6:{mail:['Городская библиотека','Книжная ярмарка','Сегодня на центральной площади с 11:00 работает ярмарка. Вход свободный.'],posts:[['city','10:00','Сегодня на площади книжная ярмарка.'],['cafe','11:30','Горячий шоколад и булочки с корицей ☕']],note:'выходные\n\nнайти книжный магазин\nкупить что-нибудь для комнаты'},
+7:{posts:[['poppy','12:30','воскресенье это когда ты обещала себе сделать всё и в итоге лежишь']],note:'воскресенье\n\nнадо перестать постоянно проверять старые переписки'},
+8:{mail:['Учебная часть','Правила общения учащихся','Просим не распространять личную информацию учащихся без их согласия. При возникновении конфликтов обращайтесь к классному руководителю.'],posts:[['gossip','14:45','У новенькой, оказывается, остались весьма интересные истории в прежней школе. Бывшие друзья иногда знают больше, чем нынешние. 💋']],note:'\nне хочу чтобы за меня рассказывали мою жизнь'},
+9:{posts:[['school','08:10','Напоминаем о подготовке осенней ярмарки.'],['city','10:00','Архивный отдел библиотеки временно ограничил выдачу некоторых материалов.']],note:'вопросы\n\nчто было в старом городе?\nпочему карты разные?'},
+10:{posts:[['cafe','13:00','Сегодня двойные бонусы за горячие напитки.'],['basket','12:00','Тренировка сегодня по обычному расписанию.']],note:'сегодня\n\nинтересно как всё постепенно меняется'},
+11:{mail:['Администрация школы','Экскурсия в городской музей','Учащиеся могут записаться на экскурсию в городской музей. Партнёр мероприятия — WARLOCK. Участие добровольное.'],posts:[['school','08:15','Открыта запись на экскурсию в музей.'],['city','09:30','Музей обновил постоянную экспозицию истории города.']],note:'музей\n\nпосмотреть что там про старый город'},
+12:{posts:[['gossip','14:50','Любопытно, как много можно узнать из одного скриншота. Прежде чем доверять кому-то свои секреты, проверьте, кому ещё он доверяет свои. 💋']],note:'скриншоты\n\nкто вообще мог это отправить?'},
+13:{posts:[['city','12:00','В районе старого моста проводятся технические работы. Просим учитывать ограничения движения.']],note:'WARLOCK\n\nНатаниэль Говард\nпочему он вообще интересуется мной?'},
+14:{mail:['Городской музей','Изменение расписания','Запланированное мероприятие переносится. О новой дате будет сообщено дополнительно.'],posts:[['city','11:00','Временные ограничения доступа к территории Старого Сентфора остаются в силе.']],note:'две недели\n\nкажется я больше не новенькая\nно вопросов стало только больше'}
+};
+function extraStart(){const d=currentDay(),c=dailyContent[d];if(!c)return;if(c.mail)dayMail('d'+d+'-mail',...c.mail);for(const [i,p] of c.posts.entries())dayPost(p[0],'d'+d+'-post-'+i,p[1],p[2]);dayNote('d'+d+'-daily',c.note.trim());if(d===5)dayFollower('poppy');if(d===6&&rel('darren')>1)dayFollower('darren')}
+function extraEnd(){const d=currentDay();if(d===5){dayPost('basket','d5-score','19:45','Победа Saintfour — 72:65! Спасибо за поддержку 🏀');dayPost('gossip','d5-gossip','20:10',has('match')?'На трибунах сегодня было интересно не только смотреть на игру. Некоторые болельщицы явно пришли ради капитана))':'Брукс снова герой дня. Интересно, кто первым поздравил нашего капитана?');}
+if(d===6&&has('map'))dayNote('d6-map','карта\n\nна старой карте есть улица которой больше нет\nДаррен сказал что это странно');
+if(d===7)dayNote('d7-liv',has('livOpen')?'Лив написала\n\nможет когда-нибудь мы сможем нормально поговорить':'Лив написала\n\nпока не хочу опять проходить через всё это');
+if(d===8)dayPost('gossip','d8-follow','20:10',has('rumorResponse')==='joke'?'Новенькая с чувством юмора. Пожалуй, это даже интересно 💋':'Кажется, сегодняшняя публикация вызвала небольшой переполох. На этом пока всё)');
+if(d===10&&has('dateAccepted'))dayNote('d10-meet','сегодняшняя прогулка\n\n'+({rudy:'Руди очень милый, когда не пытается всех рассмешить',dex:'Хоук не такой равнодушный как хочет казаться',darren:'с Дарреном можно разговаривать часами',nadine:'с Надин хорошо даже просто молчать'})[chosenRoute()]);
+if(d===13)dayNote('d13-howard','Говард\n\nочень странный разговор\nощущение что он и так знал ответы');
+if(d===14){dayNote('d14-final','неизвестный номер\n\nне удалять переписку\nзавтра проверить городской канал');dayPost('city','d14-final','21:30','Администрация сообщает об изменении режима патрулирования. Подробности будут опубликованы завтра.')}
+}
+
 const initiativeTopics={nadine:[['Привет!! Как дела?',['Привет!! Нормально, а ты как?)']],['Ты сегодня свободна после школы?',['Пока не знаю, напишу потом)']]],rudy:[['Привет) Как тренировка?',['Нормально!! Устал конечно 😂']],['Ты сегодня в школе?',['Ага, увидимся)']]],poppy:[['Посоветуй что-нибудь из косметики)',['Посмотри мой последний пост)']],['Ты сегодня в кофейню идёшь?',['Может быть']]],darren:[['Привет, можешь помочь с домашкой?',['Да, с чем именно?']],['Как дела?)',['Хорошо, спасибо)']]],dex:[['Привет, как дела?',['норм']],['Ты сегодня в школе?',['нет']]],mom:[['Мам, ты сегодня во сколько дома?',['После работы, часов в семь ❤️']],['Люблю тебя ❤️',['И я тебя ❤️']]]};
 function availableInitiative(){return contacts.filter(c=>initiativeTopics[c[0]]&&(knownContacts().some(k=>k[0]===c[0])||story.unlocked?.includes(c[0])||(story.joinedFriends&&['poppy','darren'].includes(c[0]))))}
 function openCompose(){const body=appPage('Новое сообщение',()=>openHush());for(const c of availableInitiative()){const b=el('button','chat-row');b.append(avatar(c),el('strong','',c[1]));b.onclick=()=>openChat(c);body.append(b)}}
-function renderInitiative(c,body){if(currentDay()<4||dayFrozen()||!availableInitiative().some(x=>x[0]===c[0]))return;const topics=initiativeTopics[c[0]].filter((_,i)=>!story.initiativeUsed?.[c[0]+':'+i]);if(!topics.length)return;body.append(el('p','muted','Написать первой'));for(const [text,reply] of topics){const index=initiativeTopics[c[0]].findIndex(t=>t[0]===text);body.append(action(text,()=>{if(dayFrozen()||story.queue.some(e=>e.chat===c[0])||story.initiativeUsed?.[c[0]+':'+index])return;story.initiativeUsed??={};story.initiativeUsed[c[0]+':'+index]=true;sendHush(c[0],text);saveStory();if(!(c[0]==='dex'&&index===0))enqueue(c[0],reply,c[0]==='dex'?30000:8000);openChat(c);pumpStory()},'story-choice'))}}
+function renderInitiative(c,body){if(currentDay()<4||dayFrozen()||!availableInitiative().some(x=>x[0]===c[0]))return;const topics=initiativeTopics[c[0]].filter((_,i)=>!story.initiativeUsed?.[currentDay()+':'+c[0]+':'+i]);if(!topics.length)return;body.append(el('p','muted','Написать первой'));for(const [text,reply] of topics){const index=initiativeTopics[c[0]].findIndex(t=>t[0]===text);body.append(action(text,()=>{if(dayFrozen()||story.queue.some(e=>e.chat===c[0])||story.initiativeUsed?.[currentDay()+':'+c[0]+':'+index])return;story.initiativeUsed??={};story.initiativeUsed[currentDay()+':'+c[0]+':'+index]=true;sendHush(c[0],text);saveStory();if(!(c[0]==='dex'&&index===0))enqueue(c[0],reply,c[0]==='dex'?30000:8000);openChat(c);pumpStory()},'story-choice'))}}
 function allMail(){return [...schoolMail,...(story.mail||[])]}
 
 function dayFrozen(){return !!story.dayComplete}
-function dayReady(){if(currentDay()>1)return story.dayNode==='end'&&story.dayChoiceReady;return story.schoolAnswered&&story.node==='done'&&story.familyAnswered&&!story.queue.some(e=>e.chat==='mom'||e.chat==='nadine')}
-function updateDayUI(){const b=$('dayButton'),d=currentDay();if(!b)return;b.hidden=!player||!story.dayBegun;b.textContent='День 0'+d+(story.dayComplete?' завершён · Далее →':' · '+dayWeek[d]);b.onclick=()=>{if(story.dayComplete)showDayEnd();else{const body=appPage('День 0'+d);body.append(el('p','muted',dayWeek[d]+' · '+dayNames[d]),el('p','','Продолжай обязательные переписки. Следующий день станет доступен после завершения событий.'))}}}
-function showDayStart(){const o=$('dayOverlay'),d=currentDay();o.hidden=false;o.replaceChildren(el('p','eyebrow','ГЛАВА I'),el('h1','','ДЕНЬ 0'+d),el('p','',dayWeek[d]+' · '+dayNames[d]),action('Начать день',()=>{o.hidden=true;story.dayBegun=true;saveStory();scheduleWelcome();updateDayUI()},'primary'))}
-function showDayEnd(){const o=$('dayOverlay'),d=currentDay();o.hidden=false;o.replaceChildren(el('p','eyebrow','ГЛАВА I'),el('h1','','ДЕНЬ 0'+d+' ЗАВЕРШЁН'),el('p','',dayNames[d]),action('Перейти к следующему дню',()=>{if(d>=4){o.replaceChildren(el('h1','','ДЕНЬ 05'),el('p','','Продолжение в разработке. Твоё прохождение сохранено.'),action('Вернуться в телефон',()=>{o.hidden=true},'primary'));return}story.day=d+1;story.gameClockDay=d+1;story.gameMinute=450;story.dayComplete=false;story.dayBegun=false;story.queue=[];story.background=[];saveStory();closeApp();showDayStart();updateDayUI()},'primary'),action('Остаться в телефоне',()=>{o.hidden=true;updateDayUI()},'intro-back'))}
-function finishDayIfReady(){if(story.dayComplete||!dayReady())return;dayEndContent();story.dayComplete=true;story.queue=[];story.background=[];saveStory();updateDayUI();if(activeChat){const c=contacts.find(x=>x[0]===activeChat);if(c)openChat(c)}showDayEnd()}
+function dayReady(){if(currentDay()>1)return story.dayNode==='end'&&story.dayChoiceReady&&!story.queue.some(e=>!e.background);return story.schoolAnswered&&story.node==='done'&&story.familyAnswered&&!story.queue.some(e=>e.chat==='mom'||e.chat==='nadine')}
+function updateDayUI(){const b=$('dayButton'),d=currentDay();if(!b)return;b.hidden=!player||!story.dayBegun;b.textContent='День '+String(d).padStart(2,'0')+(story.dayComplete?' завершён · Далее →':' · '+dayWeek[d]);b.onclick=()=>{if(story.dayComplete)showDayEnd();else{const body=appPage('День '+String(d).padStart(2,'0'));body.append(el('p','muted',dayWeek[d]+' · '+dayNames[d]),el('p','','Продолжай обязательные переписки. Следующий день станет доступен после завершения событий.'))}}}
+function showDayStart(){const o=$('dayOverlay'),d=currentDay();o.hidden=false;o.replaceChildren(el('p','eyebrow','ГЛАВА I'),el('h1','','ДЕНЬ '+String(d).padStart(2,'0')),el('p','',dayWeek[d]+' · '+dayNames[d]),action('Начать день',()=>{o.hidden=true;story.dayBegun=true;saveStory();scheduleWelcome();updateDayUI()},'primary'))}
+function showDayEnd(){const o=$('dayOverlay'),d=currentDay();o.hidden=false;o.replaceChildren(el('p','eyebrow','ГЛАВА I'),el('h1','','ДЕНЬ '+String(d).padStart(2,'0')+' ЗАВЕРШЁН'),el('p','',dayNames[d]),action('Перейти к следующему дню',()=>{if(d>=14){o.replaceChildren(el('h1','','ГЛАВА I ЗАВЕРШЕНА'),el('p','','Продолжение в разработке. Твоё прохождение сохранено.'),action('Вернуться в телефон',()=>{o.hidden=true},'primary'));return}story.day=d+1;story.gameClockDay=d+1;story.gameMinute=450;story.dayComplete=false;story.dayBegun=false;story.queue=[];story.background=[];saveStory();closeApp();showDayStart();updateDayUI()},'primary'),action('Остаться в телефоне',()=>{o.hidden=true;updateDayUI()},'intro-back'))}
+function finishDayIfReady(){if(story.dayComplete||!dayReady())return;dayEndContent();extraEnd();story.dayComplete=true;story.queue=[];story.background=[];saveStory();updateDayUI();if(activeChat){const c=contacts.find(x=>x[0]===activeChat);if(c)openChat(c)}showDayEnd()}
 function scheduleBackground(){if(currentDay()>1)return;if(!story.schoolAnswered||story.queue.some(e=>e.chat==='school'&&!e.background)||story.backgroundScheduled)return;story.backgroundScheduled=true;const now=Date.now();story.background=dayScenes.map(([delay,items])=>({due:now+delay,items}));saveStory()}
 function pumpBackground(){if(currentDay()>1)return;if(dayFrozen()||!story.schoolAnswered||story.queue.some(e=>e.chat==='school'&&!e.background))return;scheduleBackground();while(story.background?.length&&story.background[0].due<=Date.now()){const scene=story.background.shift();saveStory();enqueue('school',scene.items.map(([sender,text])=>({sender,text})),0,null,true)}}
 function advanceNadine(){if(story.node==='pastWait'){story.node=null;enqueue('nadine',['Кстати хотела спросить','У тебя в старой школе много друзей осталось?','Вы вообще будете общаться после переезда?'],45000,'past')}else if(story.node==='inviteWait'){story.node=null;enqueue('nadine',['Слушай','А давай завтра вместе на большой перемене посидим?','Познакомлю тебя со всеми нормально)','А то сегодня как-то сумбурно получилось'],45000,'invite')}}
