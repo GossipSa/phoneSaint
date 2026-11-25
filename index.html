@@ -7,7 +7,7 @@ const icons={channel:'<path d="M3 9v6h4l11 5V4L7 9zM7 15l2 6h3"/>',person:'<circ
 const apps=[['Почта','mail','#438edc'],['Instagram','instagram','linear-gradient(145deg,#7847d6,#db3982,#f3ad54)'],['Фото','photo','#ab77cc'],['Заметки','notes','#cda83e'],['Музыка','music','#de5579'],['Настройки','settings','#777985']],dock=[['HUSH','hush','#7160c9'],['Телефон','phone','#38b968'],['Safari','web','#438edc']];
 function renderApps(id,items){items.forEach(([name,key,color])=>{const b=document.createElement('button');b.className='app';b.dataset.app=key;b.setAttribute('aria-label',name);b.innerHTML='<span class="tile" style="--c:'+color+'"><svg viewBox="0 0 24 24">'+icons[key]+'</svg></span>'+(id==='apps'?name:'');b.onclick=()=>openApp(name,key);$(id).append(b)})}
 renderApps('apps',apps);renderApps('dock',dock);
-function openApp(name,key){activeChat=null;if(key==='phone'){openPhoneContacts();return;}if(key==='instagram'){openInstagram();return;}if(key==='mail'){openMail();return;}if(key==='photo'){openPhotos();return;}if(key==='notes'){openNotes();return;}if(key==='hush'){openHush();return;}if(key==='settings'){openSettings();return;}$('appTitle').textContent=name;$('appBody').replaceChildren();let p=document.createElement('p');p.className='muted';p.textContent=key==='music'?'Здесь появятся треки Gossip Saintfour.':key==='chat'?'Пока нет сообщений.':key==='photo'?'Твоя фотоплёнка пока пуста.':key==='trophy'?'Пока нет открытых достижений.':key==='settings'?'Твой профиль: '+player:'Приложение пока не заполнено.';$('appBody').append(p);if(key==='settings'){[['Заблокировать телефон',()=>{closeApp();$('lock').classList.add('open')}],['Начать заново',()=>{if(confirm('Сбросить имя и начать заново?')){localStorage.removeItem('phoneSaint.name');location.reload()}}]].forEach(([label,fn])=>{let b=document.createElement('button');b.className='reset';b.textContent=label;b.onclick=fn;$('appBody').append(b)})}$('screen').classList.add('open')}
+function openApp(name,key){stopChannelReading();activeChat=null;if(key==='phone'){openPhoneContacts();return;}if(key==='instagram'){openInstagram();return;}if(key==='mail'){openMail();return;}if(key==='photo'){openPhotos();return;}if(key==='notes'){openNotes();return;}if(key==='hush'){openHush();return;}if(key==='settings'){openSettings();return;}$('appTitle').textContent=name;$('appBody').replaceChildren();let p=document.createElement('p');p.className='muted';p.textContent=key==='music'?'Здесь появятся треки Gossip Saintfour.':key==='chat'?'Пока нет сообщений.':key==='photo'?'Твоя фотоплёнка пока пуста.':key==='trophy'?'Пока нет открытых достижений.':key==='settings'?'Твой профиль: '+player:'Приложение пока не заполнено.';$('appBody').append(p);if(key==='settings'){[['Заблокировать телефон',()=>{closeApp();$('lock').classList.add('open')}],['Начать заново',()=>{if(confirm('Сбросить имя и начать заново?')){localStorage.removeItem('phoneSaint.name');location.reload()}}]].forEach(([label,fn])=>{let b=document.createElement('button');b.className='reset';b.textContent=label;b.onclick=fn;$('appBody').append(b)})}$('screen').classList.add('open')}
 const prefs=JSON.parse(localStorage.getItem('phoneSaint.prefs')||'{}');const phone=document.querySelector('.phone');function applyPrefs(){phone.dataset.wall=prefs.wall||'default';$('screen').classList.toggle('light',prefs.theme==='light');}function savePrefs(){localStorage.setItem('phoneSaint.prefs',JSON.stringify(prefs));applyPrefs()}applyPrefs();
 function openSettings(){const back=$('screen').querySelector('.back');back.textContent='‹ Домой';back.onclick=closeApp; $('appTitle').textContent='Настройки';const body=$('appBody');body.replaceChildren();const profile=document.createElement('div');profile.className='profile';const avatar=document.createElement('div');avatar.className='avatar';avatar.textContent=Array.from(player)[0]?.toUpperCase()||'?';const info=document.createElement('div');const title=document.createElement('strong');title.textContent=player;const sub=document.createElement('small');sub.textContent='Твой профиль в Сентфоре';info.append(title,sub);profile.append(avatar,info);body.append(profile);
 function group(label){const wrap=document.createElement('section');wrap.className='settings-group';const head=document.createElement('p');head.className='settings-label';head.textContent=label;const list=document.createElement('div');list.className='settings-list';wrap.append(head,list);body.append(wrap);return list}
@@ -27,7 +27,7 @@ const contacts=[['mom','Мама','#b27887'],['friends','Свои','#795b9e'],['
 const notes=JSON.parse(localStorage.getItem('phoneSaint.notes')||'[]'),hushMessages=JSON.parse(localStorage.getItem('phoneSaint.hush')||'{}');
 function storeNotes(){localStorage.setItem('phoneSaint.notes',JSON.stringify(notes))}
 function storeHush(){localStorage.setItem('phoneSaint.hush',JSON.stringify(hushMessages))}
-function appPage(title,parent){$('screen').querySelector('.chat-mute')?.remove();activeChat=null;$('appTitle').textContent=title;const back=$('screen').querySelector('.back');back.textContent=parent?'‹ Назад':'‹ Домой';back.onclick=parent||closeApp;const body=$('appBody');body.replaceChildren();$('screen').classList.add('open');$('screen').scrollTop=0;return body}
+function appPage(title,parent){stopChannelReading();$('screen').querySelector('.chat-mute')?.remove();activeChat=null;$('appTitle').textContent=title;const back=$('screen').querySelector('.back');back.textContent=parent?'‹ Назад':'‹ Домой';back.onclick=parent||closeApp;const body=$('appBody');body.replaceChildren();$('screen').classList.add('open');$('screen').scrollTop=0;return body}
 function el(tag,cls,txt){const e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=txt;return e}
 function action(label,fn,cls='accent'){const b=el('button',cls,label);b.onclick=fn;return b}
 function openNotes(){const body=appPage('Заметки');const toolbar=el('div','note-toolbar');toolbar.append(el('span','muted',notes.length+' записей'),action('＋ Новая',()=>{const n={id:Date.now(),text:'',updated:Date.now(),source:'player'};notes.unshift(n);storeNotes();editNote(n)}));body.append(toolbar);if(!notes.length)body.append(el('p','muted','Здесь можно записать мысли, секреты и всё, что не хочется забывать.'));for(const n of [...notes].sort((a,b)=>b.updated-a.updated)){const b=el('button','note-row');const lines=n.text.trim().split('\n');b.append(el('strong','',lines[0]||'Новая заметка'),el('span','',new Date(n.updated).toLocaleDateString('ru-RU')+' · '+(lines.slice(1).join(' ')|| (n.source==='player'?'Личная заметка':'Неизвестный источник'))));b.onclick=()=>editNote(n);body.append(b)}}
@@ -43,7 +43,7 @@ if(tab==='channels'){renderChannels(content)}
 if(tab==='profile'){const profile=el('div','hush-profile');profile.append(avatar(['player',player||'?', '#7160c9']),el('h2','',player),el('p','muted','Твой профиль в HUSH'));content.append(profile)}
 const nav=el('nav','hush-bottom');for(const [id,label,icon] of [['chats','Чаты','chat'],['channels','Каналы','channel'],['profile','Профиль','person']]){const button=el('button',tab===id?'active':'');const symbol=document.createElementNS('http://www.w3.org/2000/svg','svg');symbol.setAttribute('viewBox','0 0 24 24');symbol.innerHTML=icons[icon];button.append(symbol,el('span','',label));button.onclick=()=>openHush(id);nav.append(button)}body.append(nav)}
 function openChat(c){delete unread[c[0]];saveNotifications();const body=appPage(c[1],()=>openHush());activeChat=c[0];$('screen').querySelector('.back').textContent='‹ Все чаты';const mute=action(mutedChats[c[0]]?'🔕 Включить':'🔔 Отключить',()=>{mutedChats[c[0]]=!mutedChats[c[0]];localStorage.setItem('phoneSaint.mutedChats',JSON.stringify(mutedChats));if(mutedChats[c[0]]&&$('notificationBanner').dataset.chat===c[0])$('notificationBanner').hidden=true;mute.textContent=mutedChats[c[0]]?'🔕 Включить':'🔔 Отключить';mute.setAttribute('aria-pressed',String(!!mutedChats[c[0]]))},'chat-mute');mute.setAttribute('aria-pressed',String(!!mutedChats[c[0]]));$('screen').querySelector('.app-header').append(mute);body.append(el('p','subheading',c[0]==='school'?'Школьная группа':story.queue.some(e=>e.chat===c[0])?'Печатает…':'Был(а) недавно'));const messages=hushMessages[c[0]]||[];if(!messages.length)body.append(el('p','hush-empty','Начни переписку. Ответы персонажей появятся после подключения сюжетного движка.'));for(const m of messages){if(m.text){if(m.sender==='system'){body.append(el('p','story-system',m.text))}else{if(c[0]==='school'&&m.sender!=='player')body.append(el('p','story-sender',({nadine:'Надин',rudy:'Руди',poppy:'Поппи',olivia:'Оливия'})[m.sender]||m.sender));body.append(el('div','hush-bubble'+(m.sender==='player'?'':' incoming'),m.text))}}if(m.photo){const b=el('button','message-photo');const img=el('img');img.src=m.photo.src;img.alt=m.photo.caption||'Фото';b.append(img);b.onclick=()=>viewPhoto(m.photo,()=>openChat(c));body.append(b)}}renderStoryChoices(c,body);requestAnimationFrame(()=>{$('screen').scrollTop=$('screen').scrollHeight})}
-function closeApp(){activeChat=null;const back=$('screen').querySelector('.back');back.textContent='‹ Домой';back.onclick=closeApp;$('screen').classList.remove('open')}
+function closeApp(){stopChannelReading();activeChat=null;const back=$('screen').querySelector('.back');back.textContent='‹ Домой';back.onclick=closeApp;$('screen').classList.remove('open')}
 let activeChat=null,notificationTimer;
 const mutedChats=JSON.parse(localStorage.getItem('phoneSaint.mutedChats')||'{}');
 const unread=JSON.parse(localStorage.getItem('phoneSaint.unread')||'{}'),notifications=JSON.parse(localStorage.getItem('phoneSaint.notifications')||'[]'),photos=JSON.parse(localStorage.getItem('phoneSaint.photos')||'[]');
@@ -150,6 +150,40 @@ const channelData=[
         "comments": []
       },
       {
+        "id": "gossip-july",
+        "when": "19 июля · 22:10",
+        "text": "Удивительно, как некоторые жалуются на скуку в городе, а потом три часа сидят на парковке у закусочной\nНу хоть музыку потише сделайте, дорогие 💋",
+        "reactions": {
+          "😂": 83,
+          "👀": 44
+        },
+        "comments": [
+          [
+            "noah",
+            "это про кого ахах"
+          ],
+          [
+            "ellie",
+            "я даже знаю парковку"
+          ]
+        ]
+      },
+      {
+        "id": "gossip-aug",
+        "when": "25 августа · 20:00",
+        "text": "Пенелопа нашла топ с биркой, а кое-кто из наших выпускников ещё не нашёл учебники на новый год\nПриоритеты, как говорится))",
+        "reactions": {
+          "😂": 65,
+          "💀": 32
+        },
+        "comments": [
+          [
+            "mason.23",
+            "зачем так лично"
+          ]
+        ]
+      },
+      {
         "when": "Воскресенье · 20:40",
         "text": "Ну что, Сентфор, соскучились?\nНадеюсь, за лето вы успели накопить достаточно секретов))",
         "id": "gossip-start-3",
@@ -216,6 +250,34 @@ const channelData=[
           "❤️": 34
         },
         "comments": []
+      },
+      {
+        "id": "school-aug",
+        "when": "20 августа · 09:00",
+        "text": "Приём документов и выдача учебников новым учащимся — с 26 по 30 августа, 09:00–14:00. Кабинет администрации № 101.",
+        "reactions": {
+          "👍": 49
+        },
+        "comments": []
+      },
+      {
+        "id": "school-aug2",
+        "when": "28 августа · 12:00",
+        "text": "Внимание! В первый учебный день после шестого урока состоится короткая встреча выпускных классов с классными руководителями.",
+        "reactions": {
+          "👍": 35,
+          "😭": 18
+        },
+        "comments": [
+          [
+            "mason.23",
+            "а долго это будет?"
+          ],
+          [
+            "saintfour.high",
+            "Около 15 минут."
+          ]
+        ]
       },
       {
         "when": "Воскресенье · 17:00",
@@ -297,6 +359,25 @@ const channelData=[
           "😭": 12
         },
         "comments": []
+      },
+      {
+        "id": "basket-aug",
+        "when": "19 августа · 16:20",
+        "text": "Зал снова открыт! На этой неделе свободные тренировки с 16:00 до 18:00\nБерите воду и сменную обувь 🏀",
+        "reactions": {
+          "🏀": 47,
+          "🔥": 28
+        },
+        "comments": [
+          [
+            "rudy",
+            "наконец-то 😄"
+          ],
+          [
+            "mason.23",
+            "завтра буду"
+          ]
+        ]
       },
       {
         "when": "Суббота · 18:45",
@@ -393,6 +474,52 @@ const channelData=[
         ]
       },
       {
+        "id": "poppy-july-1",
+        "when": "12 июля · 17:40",
+        "text": "купила белые кеды и уже жалею\nкто-нибудь знает как отмыть их и не испортить ткань? 😭",
+        "reactions": {
+          "😂": 86,
+          "❤️": 104
+        },
+        "comments": [
+          [
+            "kate.jpg",
+            "мягкая щётка и мыльная вода"
+          ],
+          [
+            "penelope",
+            "спасибо, попробую)"
+          ],
+          [
+            "olivia",
+            "я же говорила брать чёрные"
+          ]
+        ]
+      },
+      {
+        "id": "poppy-july-2",
+        "when": "26 июля · 21:15",
+        "text": "маленький список фильмов на вечер\n10 причин моей ненависти, Дрянные девчонки и Дневник Бриджит Джонс\nда, я опять пересматриваю одно и то же))",
+        "reactions": {
+          "❤️": 173,
+          "🍿": 62
+        },
+        "comments": [
+          [
+            "mia.v",
+            "дневник принцессы ещё!!"
+          ],
+          [
+            "penelope",
+            "точно, забыла про него"
+          ],
+          [
+            "soph.m",
+            "уже включила"
+          ]
+        ]
+      },
+      {
         "id": "poppy-aug",
         "when": "18 августа · 18:20",
         "text": "Девочки, если хотите красивые фотки, не обязательно покупать дорогую камеру\nПротрите объектив, встаньте у окна и посмотрите, что у вас на заднем плане\nИ пожалуйста, не снимайте против лампы, если не хотите выглядеть как свидетель на анонимном интервью 😭",
@@ -417,6 +544,25 @@ const channelData=[
           [
             "kate.jpg",
             "сохранила!"
+          ]
+        ]
+      },
+      {
+        "id": "poppy-aug-2",
+        "when": "24 августа · 15:50",
+        "text": "если кто-то ещё выбирает одежду к школе\nне покупайте сразу десять новых вещей. Сначала посмотрите с чем будете их носить\nя вот нашла в шкафу топ с биркой, который купила в мае 💀",
+        "reactions": {
+          "❤️": 142,
+          "😂": 58
+        },
+        "comments": [
+          [
+            "jules",
+            "у меня таких три"
+          ],
+          [
+            "penelope",
+            "наш человек))"
           ]
         ]
       },
@@ -534,12 +680,211 @@ const channelData=[
       }
     ],
     "subscribers": 1284
+  },
+  {
+    "id": "city",
+    "name": "Saintfour • город",
+    "color": "#526b83",
+    "subscribers": 1847,
+    "posts": [
+      {
+        "id": "city-june",
+        "when": "12 июня · 10:00",
+        "text": "Летний режим городского бассейна: ежедневно с 10:00 до 20:00. По понедельникам открытие в 12:00.",
+        "reactions": {
+          "👍": 67,
+          "☀️": 44
+        },
+        "comments": [
+          [
+            "luna.m",
+            "наконец-то"
+          ]
+        ]
+      },
+      {
+        "id": "city-july",
+        "when": "9 июля · 18:30",
+        "text": "На центральной площади в субботу небольшая ярмарка: книги, украшения ручной работы, выпечка и музыка. Начало в 11:00",
+        "reactions": {
+          "❤️": 105,
+          "👍": 32
+        },
+        "comments": [
+          [
+            "kate.jpg",
+            "иду за украшениями"
+          ],
+          [
+            "noah",
+            "а парковка будет открыта?"
+          ]
+        ]
+      },
+      {
+        "id": "city-aug",
+        "when": "23 августа · 11:15",
+        "text": "Городская библиотека возвращается к осеннему графику с понедельника: 09:00–18:00 по будням, 10:00–15:00 в субботу.",
+        "reactions": {
+          "👍": 42
+        },
+        "comments": []
+      },
+      {
+        "id": "city-start",
+        "when": "Понедельник · 08:30",
+        "text": "С началом учебного года! У школы утром плотное движение. Просим водителей быть внимательнее возле переходов.",
+        "reactions": {
+          "👍": 73,
+          "❤️": 16
+        },
+        "comments": []
+      }
+    ]
+  },
+  {
+    "id": "lost",
+    "name": "Сентфор | Бюро находок",
+    "color": "#9b8155",
+    "subscribers": 342,
+    "posts": [
+      {
+        "id": "lost-june",
+        "when": "5 июня · 14:10",
+        "text": "нашли ключи с брелком в виде звезды возле школьной библиотеки\nоставили у охраны",
+        "reactions": {
+          "👍": 19
+        },
+        "comments": [
+          [
+            "soph.m",
+            "О БОЖЕ МОИ"
+          ]
+        ]
+      },
+      {
+        "id": "lost-july",
+        "when": "17 июля · 19:30",
+        "text": "кто оставил чёрную толстовку на лавочке у набережной? забрать можно в кофейне до закрытия",
+        "reactions": {
+          "👀": 16,
+          "❤️": 8
+        },
+        "comments": [
+          [
+            "noah",
+            "не моя, но я тоже свою потерял"
+          ]
+        ]
+      },
+      {
+        "id": "lost-aug",
+        "when": "27 августа · 13:25",
+        "text": "ищу владельца серого кота, сидел возле магазина на главной\nкот в порядке, просто очень разговорчивый",
+        "reactions": {
+          "❤️": 71,
+          "🐾": 31
+        },
+        "comments": [
+          [
+            "mia.v",
+            "это соседский Барни, он постоянно там гуляет"
+          ],
+          [
+            "ellie",
+            "Барни легенда"
+          ]
+        ]
+      },
+      {
+        "id": "lost-start",
+        "when": "Понедельник · 14:20",
+        "text": "найден пенал в 204 кабинете\nесли ваш, спросите у преподавателя фотоклуба",
+        "reactions": {
+          "👍": 14
+        },
+        "comments": []
+      }
+    ]
+  },
+  {
+    "id": "cafe",
+    "name": "Coffee Corner",
+    "color": "#a16c54",
+    "subscribers": 567,
+    "posts": [
+      {
+        "id": "cafe-june",
+        "when": "10 июня · 09:00",
+        "text": "Лето официально началось ☀️\nВозвращаем айс-латте и клубничный лимонад в меню",
+        "reactions": {
+          "❤️": 86,
+          "☕": 38
+        },
+        "comments": [
+          [
+            "kate.jpg",
+            "клубничный мой любимый"
+          ]
+        ]
+      },
+      {
+        "id": "cafe-july",
+        "when": "28 июля · 12:20",
+        "text": "Сегодня на витрине свежие булочки с корицей\nПока не разобрали))",
+        "reactions": {
+          "❤️": 65,
+          "🔥": 23
+        },
+        "comments": []
+      },
+      {
+        "id": "cafe-aug",
+        "when": "26 августа · 17:00",
+        "text": "С понедельника открываемся в 07:30, чтобы вы успевали за кофе перед школой ☕",
+        "reactions": {
+          "❤️": 94,
+          "👍": 41
+        },
+        "comments": [
+          [
+            "penelope",
+            "вот это хорошая новость"
+          ],
+          [
+            "mason.23",
+            "спасены"
+          ]
+        ]
+      },
+      {
+        "id": "cafe-start",
+        "when": "Понедельник · 12:45",
+        "text": "Столики у окна сегодня почти весь день заняты 😅\nНо места на террасе ещё есть!",
+        "reactions": {
+          "☕": 37,
+          "😂": 13
+        },
+        "comments": [
+          [
+            "luna.m",
+            "Поппи что-то знала ахах"
+          ]
+        ]
+      }
+    ]
   }
 ];
 const worldUI=JSON.parse(localStorage.getItem('phoneSaint.worldUI')||'{}');worldUI.channels??={};worldUI.comments??={};worldUI.achievements??={};
 function saveWorld(){localStorage.setItem('phoneSaint.worldUI',JSON.stringify(worldUI))}
-function renderChannels(body){for(const c of channelData){const row=el('button','chat-row'),info=el('div','chat-info');info.append(el('strong','',c.name),el('small','',c.subscribers+(worldUI.channels[c.id]?1:0)+' подписчиков'),el('small','',c.posts.filter(p=>!p.deleted).at(-1).text));row.append(avatar([c.id,c.name,c.color]),info);row.onclick=()=>openChannel(c);body.append(row)}}
-function openChannel(c){const body=appPage(c.name,()=>openHush('channels'));body.append(action(worldUI.channels[c.id]?'Отписаться':'Подписаться',()=>{worldUI.channels[c.id]=!worldUI.channels[c.id];saveWorld();openChannel(c)},'insta-follow'));body.append(el('p','muted',(c.subscribers+(worldUI.channels[c.id]?1:0))+' подписчиков'));const archive=el('div','channel-archive');for(const p of c.posts.filter(p=>!p.deleted).slice().reverse()){const card=el('article','channel-post');card.append(el('strong','',c.name),el('small','channel-date',p.when),el('p','',p.text));const bar=el('div','channel-reactions');for(const [emoji,n] of Object.entries(p.reactions)){const key=p.id+'-'+emoji;const btn=action(emoji+' '+(n+(worldUI.channelReactions?.[key]?1:0)),()=>{worldUI.channelReactions??={};worldUI.channelReactions[key]=!worldUI.channelReactions[key];saveWorld();btn.textContent=emoji+' '+(n+(worldUI.channelReactions[key]?1:0));btn.setAttribute('aria-pressed',String(!!worldUI.channelReactions[key]))},'channel-reaction');btn.setAttribute('aria-pressed',String(!!worldUI.channelReactions?.[key]));bar.append(btn)}card.append(bar,action('Комментарии · '+channelComments(p).length,()=>openChannelComments(c,p),'channel-comment-link'));archive.append(card)}body.append(archive);if(c.id==='gossip'){const form=el('form','insta-edit'),input=el('textarea','insta-input'),status=el('p','muted');input.placeholder='Анонимная предложка';input.maxLength=1000;input.required=true;const submit=el('button','insta-follow','Отправить анонимно');submit.type='submit';form.append(input,submit,status);form.onsubmit=e=>{e.preventDefault();if(!input.value.trim())return;(worldUI.tips??=[]).push({text:input.value.trim(),at:Date.now()});saveWorld();input.value='';status.textContent='Сохранено в предложке. Публикация зависит от дальнейшего сюжета.'};body.append(form)}}
+
+let channelReading=null;
+function saveChannelReading(){if(!channelReading)return;const sc=$('screen');if(!sc.classList.contains('open'))return;const top=sc.querySelector('.app-header').getBoundingClientRect().bottom;const cards=[...sc.querySelectorAll('[data-post-id]')];const card=cards.find(x=>x.getBoundingClientRect().bottom>top);worldUI.channelPositions??={};worldUI.channelPositions[channelReading]={scroll:sc.scrollTop,postId:card?.dataset.postId,offset:card?card.getBoundingClientRect().top-top:0};saveWorld()}
+function stopChannelReading(){if(!channelReading)return;saveChannelReading();$('screen').removeEventListener('scroll',saveChannelReading);channelReading=null}
+function startChannelReading(id){const sc=$('screen');channelReading=id;const pos=worldUI.channelPositions?.[id];if(pos){const card=[...sc.querySelectorAll('[data-post-id]')].find(x=>x.dataset.postId===pos.postId);sc.scrollTop=card?sc.scrollTop+card.getBoundingClientRect().top-sc.querySelector('.app-header').getBoundingClientRect().bottom-pos.offset:pos.scroll||0}else sc.scrollTop=0;sc.addEventListener('scroll',saveChannelReading,{passive:true})}
+window.addEventListener('pagehide',saveChannelReading);
+function renderChannels(body){for(const c of channelData){const row=el('button','chat-row'),info=el('div','chat-info');info.append(el('strong','',c.name),el('small','',c.subscribers+' подписчиков'),el('small','',c.posts.filter(p=>!p.deleted).at(-1).text));row.append(avatar([c.id,c.name,c.color]),info);row.onclick=()=>openChannel(c);body.append(row)}}
+function openChannel(c){const body=appPage(c.name,()=>openHush('channels'));body.append(el('p','muted',(c.subscribers)+' подписчиков'));const archive=el('div','channel-archive');for(const p of c.posts.filter(p=>!p.deleted).slice().reverse()){const card=el('article','channel-post');card.dataset.postId=p.id;card.append(el('strong','',c.name),el('small','channel-date',p.when),el('p','',p.text));const bar=el('div','channel-reactions');for(const [emoji,n] of Object.entries(p.reactions)){const key=p.id+'-'+emoji;const btn=action(emoji+' '+(n+(worldUI.channelReactions?.[key]?1:0)),()=>{worldUI.channelReactions??={};worldUI.channelReactions[key]=!worldUI.channelReactions[key];saveWorld();btn.textContent=emoji+' '+(n+(worldUI.channelReactions[key]?1:0));btn.setAttribute('aria-pressed',String(!!worldUI.channelReactions[key]))},'channel-reaction');btn.setAttribute('aria-pressed',String(!!worldUI.channelReactions?.[key]));bar.append(btn)}card.append(bar,action('Комментарии · '+channelComments(p).length,()=>openChannelComments(c,p),'channel-comment-link'));archive.append(card)}body.append(archive);if(c.id==='gossip'){const form=el('form','insta-edit'),input=el('textarea','insta-input'),status=el('p','muted');input.placeholder='Анонимная предложка';input.maxLength=1000;input.required=true;const submit=el('button','insta-follow','Отправить анонимно');submit.type='submit';form.append(input,submit,status);form.onsubmit=e=>{e.preventDefault();if(!input.value.trim())return;(worldUI.tips??=[]).push({text:input.value.trim(),at:Date.now()});saveWorld();input.value='';status.textContent='Сохранено в предложке. Публикация зависит от дальнейшего сюжета.'};body.append(form)}startChannelReading(c.id)}
 
 function channelComments(p){return [...p.comments.map(([name,text])=>({name,text})),...(worldUI.channelComments?.[p.id]||[])]}
 function openChannelComments(c,p){const body=appPage('Комментарии',()=>openChannel(c));body.append(el('p','channel-post',p.text));for(const item of channelComments(p)){const row=el('div','channel-post');row.append(el('strong','',item.name),el('p','',item.text));body.append(row)}const form=el('form','insta-edit'),input=el('input','insta-input');input.placeholder='Написать комментарий…';input.maxLength=300;input.required=true;const submit=el('button','insta-follow','Отправить');submit.type='submit';form.append(input,submit);form.onsubmit=e=>{e.preventDefault();if(!input.value.trim())return;worldUI.channelComments??={};(worldUI.channelComments[p.id]??=[]).push({name:player,text:input.value.trim()});saveWorld();openChannelComments(c,p)};body.append(form)}
